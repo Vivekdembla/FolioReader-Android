@@ -36,11 +36,15 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.Toolbar
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -65,6 +69,8 @@ import com.folioreader.ui.view.MediaControllerCallback
 import com.folioreader.util.AppUtil
 import com.folioreader.util.FileUtil
 import com.folioreader.util.UiUtil
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.android.synthetic.main.folio_activity.*
 import org.greenrobot.eventbus.EventBus
 import org.readium.r2.shared.Link
 import org.readium.r2.shared.Publication
@@ -81,6 +87,9 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
 
     private var mFolioPageViewPager: DirectionalViewpager? = null
     private var actionBar: ActionBar? = null
+    private var bottom_constraint: CoordinatorLayout? =null
+//    private var drawer:ImageView?=null
+//    private var setting:ImageView? =null
     private var appBarLayout: FolioAppBarLayout? = null
     private var toolbar: Toolbar? = null
     private var distractionFreeMode: Boolean = false
@@ -304,9 +313,11 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         setSupportActionBar(toolbar)
         actionBar = supportActionBar
 
+        bottom_constraint=findViewById(R.id.bottom_constraint)
+
         val config = AppUtil.getSavedConfig(applicationContext)!!
 
-        val drawable = ContextCompat.getDrawable(this, R.drawable.ic_drawer)
+        val drawable = ContextCompat.getDrawable(this, R.drawable.ic_back)
         UiUtil.setColorIntToDrawable(config.themeColor, drawable!!)
         toolbar!!.navigationIcon = drawable
 
@@ -341,6 +352,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
             ColorDrawable(ContextCompat.getColor(this, R.color.white))
         )
         toolbar!!.setTitleTextColor(ContextCompat.getColor(this, R.color.black))
+        bottom_constraint!!.setBackground(ColorDrawable(ContextCompat.getColor(this, R.color.white)))
     }
 
     override fun setNightMode() {
@@ -350,6 +362,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
             ColorDrawable(ContextCompat.getColor(this, R.color.black))
         )
         toolbar!!.setTitleTextColor(ContextCompat.getColor(this, R.color.night_title_text_color))
+        bottom_constraint!!.setBackground(ColorDrawable(ContextCompat.getColor(this, R.color.black)))
     }
 
     private fun initMediaController() {
@@ -360,10 +373,9 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
-
         val config = AppUtil.getSavedConfig(applicationContext)!!
         UiUtil.setColorIntToDrawable(config.themeColor, menu.findItem(R.id.itemSearch).icon)
-        UiUtil.setColorIntToDrawable(config.themeColor, menu.findItem(R.id.itemConfig).icon)
+//        UiUtil.setColorIntToDrawable(config.themeColor, menu.findItem(R.id.itemConfig).icon)
         UiUtil.setColorIntToDrawable(config.themeColor, menu.findItem(R.id.itemTts).icon)
 
         if (!config.isShowTts)
@@ -378,11 +390,13 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         val itemId = item.itemId
 
         if (itemId == android.R.id.home) {
-            Log.v(LOG_TAG, "-> onOptionsItemSelected -> drawer")
-            startContentHighlightActivity()
+//            Log.v(LOG_TAG, "-> onOptionsItemSelected -> drawer")
+//            startContentHighlightActivity()
+            finish()
             return true
 
-        } else if (itemId == R.id.itemSearch) {
+        }
+        else if (itemId == R.id.itemSearch) {
             Log.v(LOG_TAG, "-> onOptionsItemSelected -> " + item.title)
             if (searchUri == null)
                 return true
@@ -394,10 +408,10 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
             startActivityForResult(intent, RequestCode.SEARCH.value)
             return true
 
-        } else if (itemId == R.id.itemConfig) {
-            Log.v(LOG_TAG, "-> onOptionsItemSelected -> " + item.title)
-            showConfigBottomSheetDialogFragment()
-            return true
+//        } else if (itemId == R.id.itemConfig) {
+//            Log.v(LOG_TAG, "-> onOptionsItemSelected -> " + item.title)
+//            showConfigBottomSheetDialogFragment()
+//            return true
 
         } else if (itemId == R.id.itemTts) {
             Log.v(LOG_TAG, "-> onOptionsItemSelected -> " + item.title)
@@ -699,8 +713,10 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         if (actionBar != null) {
             if (distractionFreeMode) {
                 actionBar!!.hide()
+//                bottom_constraint!!.visibility=View.GONE
             } else {
                 actionBar!!.show()
+//                bottom_constraint!!.visibility=View.VISIBLE
             }
         }
     }
@@ -1059,5 +1075,14 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
                 bundle?.putParcelable(FolioPageFragment.BUNDLE_SEARCH_LOCATOR, null)
             }
         }
+    }
+
+    fun openDrawer(view: View) {
+            Log.v(LOG_TAG, "-> onOptionsItemSelected -> drawer")
+            startContentHighlightActivity()
+    }
+    fun openSettings(view: View) {
+//        Log.v(LOG_TAG, "-> onOptionsItemSelected -> " + item.title)
+        showConfigBottomSheetDialogFragment()
     }
 }
