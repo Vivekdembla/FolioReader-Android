@@ -92,7 +92,7 @@ public class DirectionalViewpager extends ViewGroup {
         }
     };
 
-    private final ArrayList<ItemInfo> mItems = new ArrayList<ItemInfo>();
+    public final ArrayList<ItemInfo> mItems = new ArrayList<ItemInfo>();
     private final ItemInfo mTempItem = new ItemInfo();
 
     private final Rect mTempRect = new Rect();
@@ -1390,6 +1390,7 @@ public class DirectionalViewpager extends ViewGroup {
             Collections.sort(mDrawingOrderedChildren, sPositionComparator);
         }
     }
+
 
     private void calculatePageOffsets(ItemInfo curItem, int curIndex, ItemInfo oldCurInfo) {
         final int N = mAdapter.getCount();

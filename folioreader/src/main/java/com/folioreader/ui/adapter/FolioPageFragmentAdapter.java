@@ -61,6 +61,7 @@ public class FolioPageFragmentAdapter extends FragmentStatePagerAdapter {
                     mEpubFileName, mSpineReferences.get(position), mBookId);
             fragments.set(position, fragment);
         }
+        Log.e("Check","Position is "+position);
         return fragment;
     }
 

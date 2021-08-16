@@ -3,13 +3,13 @@ package com.folioreader.ui.view
 import android.animation.Animator
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.SeekBar
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.folioreader.Config
@@ -27,6 +27,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.android.synthetic.main.view_config.*
 import org.greenrobot.eventbus.EventBus
 
+
 /**
  * Created by mobisys2 on 11/16/2016.
  */
@@ -34,6 +35,7 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     companion object {
         const val FADE_DAY_NIGHT_MODE = 500
+
         @JvmField
         val LOG_TAG: String = ConfigBottomSheetDialogFragment::class.java.simpleName
     }
@@ -41,8 +43,13 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
     private lateinit var config: Config
     private var isNightMode = false
     private lateinit var activityCallback: FolioActivityCallback
+    private lateinit var parent1:ImageView
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.view_config, container)
     }
 
@@ -52,6 +59,8 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
         if (activity is FolioActivity)
             activityCallback = activity as FolioActivity
 
+        parent1 = view.findViewById(R.id.parent1)
+
         view.viewTreeObserver.addOnGlobalLayoutListener {
             val dialog = dialog as BottomSheetDialog
             val bottomSheet =
@@ -60,14 +69,78 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
             behavior.peekHeight = 0
         }
+        view.findViewById<Switch>(R.id.switchButton)
+            .setOnCheckedChangeListener(CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
+                if (isChecked) {
+                    nightmodeon()
+                    view.findViewById<TextView>(R.id.modeDetail).text = "Night Mode"
+                    view_config_ib_day_mode.setImageResource(R.drawable.icon_moon_sel)
+
+                } else {
+                    daymodeon()
+                    view.findViewById<TextView>(R.id.modeDetail).text = "Light Mode"
+                    view_config_ib_day_mode.setImageResource(R.drawable.icon_sun_sel)
+                }
+            })
+
+        val spinner = view.findViewById<Spinner>(R.id.spinner)
+        val languages = ArrayList<String>()
+        languages.add("Choose Language")
+        languages.add("Android")
+        languages.add("IOS")
+        languages.add("Flutter")
+        languages.add("Node")
+        languages.add("Java")
+        languages.add("Python")
+        var confirmation = false
+        if (spinner != null) {
+            val adapter = ArrayAdapter(
+                activity!!,
+                R.layout.spinner_design, languages
+            )
+            spinner.adapter = adapter
+        }
+//        val language_selected = view.findViewById<TextView>(R.id.language_selected)
+//        language_selected.setOnClickListener{
+//            spinner.performClick()
+//        }
+        spinner.onItemSelectedListener = object :
+            AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>,
+                view: View, position: Int, id: Long
+            ) {
+                (parent.getChildAt(0) as TextView).setTextColor(Color.LTGRAY)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {
+
+            }
+        }
+
+
+//        language_selected.text = "Choose Language"
 
         config = AppUtil.getSavedConfig(activity)!!
         initViews()
+
+        if (!config.isNightMode) {
+            view.findViewById<Switch>(R.id.switchButton).isChecked = false
+            view.findViewById<TextView>(R.id.modeDetail).text = "Light Mode"
+
+        } else {
+            view.findViewById<Switch>(R.id.switchButton).isChecked = true
+            view.findViewById<TextView>(R.id.modeDetail).text = "Night Mode"
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         view?.viewTreeObserver?.addOnGlobalLayoutListener(null)
+    }
+
+    override fun getTheme(): Int {
+        return R.style.AppBottomSheetDialogTheme
     }
 
     private fun initViews() {
@@ -78,9 +151,9 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
         selectFont(config.font, false)
         isNightMode = config.isNightMode
         if (isNightMode) {
-            container.setBackgroundColor(ContextCompat.getColor(context!!, R.color.night))
+            parent1.setImageResource(R.drawable.round_night_final)// setBackgroundResource(R.drawable.round_night_final)///////
         } else {
-            container.setBackgroundColor(ContextCompat.getColor(context!!, R.color.white))
+            parent1.setImageResource(R.drawable.round_day)
         }
 
         if (isNightMode) {
@@ -104,27 +177,13 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
             buttonHorizontal.visibility = View.GONE
         }
 
-        view_config_ib_day_mode.setOnClickListener {
-            isNightMode = true
-            toggleBlackTheme()
-            view_config_ib_day_mode.isSelected = true
-            view_config_ib_night_mode.isSelected = false
-            setToolBarColor()
-            setAudioPlayerBackground()
-            UiUtil.setColorResToDrawable(R.color.app_gray, view_config_ib_night_mode.drawable)
-            UiUtil.setColorIntToDrawable(config.themeColor, view_config_ib_day_mode.drawable)
-        }
-
-        view_config_ib_night_mode.setOnClickListener {
-            isNightMode = false
-            toggleBlackTheme()
-            view_config_ib_day_mode.isSelected = false
-            view_config_ib_night_mode.isSelected = true
-            UiUtil.setColorResToDrawable(R.color.app_gray, view_config_ib_day_mode.drawable)
-            UiUtil.setColorIntToDrawable(config.themeColor, view_config_ib_night_mode.drawable)
-            setToolBarColor()
-            setAudioPlayerBackground()
-        }
+//        view_config_ib_day_mode.setOnClickListener {
+//            daymodeon()
+//        }
+//
+//        view_config_ib_night_mode.setOnClickListener {
+//            nightmodeon()
+//        }
 
         if (activityCallback.direction == Config.Direction.HORIZONTAL) {
             buttonHorizontal.isSelected = true
@@ -149,6 +208,33 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
             buttonHorizontal.isSelected = true
             buttonVertical.isSelected = false
         }
+    }
+
+    private fun daymodeon() {
+        isNightMode = true
+        toggleBlackTheme()
+        view_config_ib_day_mode.isSelected = true
+        view_config_ib_night_mode.isSelected = false
+        setToolBarColor()
+        setAudioPlayerBackground()
+        UiUtil.setColorResToDrawable(R.color.app_gray, view_config_ib_night_mode.drawable)
+        UiUtil.setColorIntToDrawable(config.themeColor, view_config_ib_day_mode.drawable)
+        parent1.setImageResource(R.drawable.round_day)
+        config.isNightMode = false
+    }
+
+    private fun nightmodeon() {
+        isNightMode = false
+        toggleBlackTheme()
+        view_config_ib_day_mode.isSelected = false
+        view_config_ib_night_mode.isSelected = true
+        UiUtil.setColorResToDrawable(R.color.app_gray, view_config_ib_day_mode.drawable)
+        UiUtil.setColorIntToDrawable(config.themeColor, view_config_ib_night_mode.drawable)
+//        language_selected.setTextColor(ContextCompat.getColor(activity!!,R.color.app_gray))
+        setToolBarColor()
+        setAudioPlayerBackground()
+        parent1.setImageResource(R.drawable.round_night_final)
+        config.isNightMode = true
     }
 
     private fun configFonts() {
@@ -193,6 +279,12 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     private fun toggleBlackTheme() {
 
+
+        if(isNightMode)
+            parent1.setImageResource(R.drawable.round_night_final)
+        else
+            parent1.setImageResource(R.drawable.round_day)
+
         val day = ContextCompat.getColor(context!!, R.color.white)
         val night = ContextCompat.getColor(context!!, R.color.night)
 
@@ -204,8 +296,10 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
         colorAnimation.addUpdateListener { animator ->
             val value = animator.animatedValue as Int
-            container.setBackgroundColor(value)
+//            container.setBackgroundColor(value)
+
         }
+
 
         colorAnimation.addListener(object : Animator.AnimatorListener {
             override fun onAnimationStart(animator: Animator) {}
@@ -255,10 +349,14 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
     private fun configSeekBar() {
         val thumbDrawable = ContextCompat.getDrawable(activity!!, R.drawable.seekbar_thumb)
         UiUtil.setColorIntToDrawable(config.themeColor, thumbDrawable)
-        UiUtil.setColorResToDrawable(R.color.grey_color, view_config_font_size_seek_bar.progressDrawable)
+        UiUtil.setColorResToDrawable(
+            R.color.grey_color,
+            view_config_font_size_seek_bar.progressDrawable
+        )
         view_config_font_size_seek_bar.thumb = thumbDrawable
 
-        view_config_font_size_seek_bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        view_config_font_size_seek_bar.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 config.fontSize = progress
                 AppUtil.saveConfig(activity, config)
@@ -281,8 +379,9 @@ class ConfigBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
     private fun setAudioPlayerBackground() {
 
-        var mediaControllerFragment: Fragment? = fragmentManager?.findFragmentByTag(MediaControllerFragment.LOG_TAG)
-            ?: return
+        var mediaControllerFragment: Fragment? =
+            fragmentManager?.findFragmentByTag(MediaControllerFragment.LOG_TAG)
+                ?: return
         mediaControllerFragment = mediaControllerFragment as MediaControllerFragment
         if (isNightMode) {
             mediaControllerFragment.setDayMode()

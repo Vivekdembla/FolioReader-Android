@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+<!--    <style name="TransparentBottomSheetDialogTheme" parent="Theme.AppCompat.Light">-->
+<!--        <item name="android:background">@android:color/transparent</item>-->
+<!--        <item name="android:colorBackground">@android:color/transparent</item>-->
+<!--        <item name="android:backgroundDimEnabled">true</item>-->
+<!--    </style>-->
+    <style name="AppBottomSheetDialogThemeNight"
+        parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/AppModalStyleNight</item>
+    </style>
+
+    <style name="AppModalStyleNight"
+        parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/round_night</item>
+    </style>
+
     <style name="FolioActivityDayTheme" parent="Theme.AppCompat.Light">
+        <item name="bottomSheetDialogTheme">@style/AppBottomSheetDialogThemeNight</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="colorPrimary">@color/white</item>

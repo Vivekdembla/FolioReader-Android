@@ -18,10 +18,7 @@ package com.folioreader.ui.activity
 import android.Manifest
 import android.app.Activity
 import android.app.ActivityManager
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
@@ -37,6 +34,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
@@ -70,6 +68,7 @@ import com.folioreader.util.AppUtil
 import com.folioreader.util.FileUtil
 import com.folioreader.util.UiUtil
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.android.synthetic.main.folio_activity.*
 import org.greenrobot.eventbus.EventBus
 import org.readium.r2.shared.Link
@@ -124,6 +123,8 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
     private var density: Float = 0.toFloat()
     private var topActivity: Boolean? = null
     private var taskImportance: Int = 0
+    lateinit var sharedPre: SharedPreferences
+    lateinit var page_status:TextView
 
     companion object {
 
@@ -254,6 +255,8 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         // Need to add when vector drawables support library is used.
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 
+        sharedPre = getSharedPreferences("Shared", MODE_PRIVATE)
+
         handler = Handler()
         val display = windowManager.defaultDisplay
         displayMetrics = resources.displayMetrics
@@ -272,6 +275,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         initDistractionFreeMode(savedInstanceState)
 
         setContentView(R.layout.folio_activity)
+        page_status = findViewById(R.id.page_status)
         this.savedInstanceState = savedInstanceState
 
         if (savedInstanceState != null) {
@@ -304,6 +308,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         } else {
             setupBook()
         }
+        page_status.text = "1 of ${mFolioPageViewPager!!.adapter.count}"
     }
 
     private fun initActionBar() {
@@ -323,7 +328,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
 
         if (config.isNightMode) {
             setNightMode()
-        } else {
+        } else {////
             setDayMode()
         }
 
@@ -353,6 +358,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         )
         toolbar!!.setTitleTextColor(ContextCompat.getColor(this, R.color.black))
         bottom_constraint!!.setBackground(ColorDrawable(ContextCompat.getColor(this, R.color.white)))
+        page_status.setTextColor(ContextCompat.getColor(this,R.color.black))
     }
 
     override fun setNightMode() {
@@ -363,6 +369,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         )
         toolbar!!.setTitleTextColor(ContextCompat.getColor(this, R.color.night_title_text_color))
         bottom_constraint!!.setBackground(ColorDrawable(ContextCompat.getColor(this, R.color.black)))
+        page_status.setTextColor(ContextCompat.getColor(this,R.color.white))
     }
 
     private fun initMediaController() {
@@ -578,6 +585,8 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
         searchLocatorVisible?.let {
             folioPageFragment.highlightSearchLocator(searchLocatorVisible)
         }
+
+
     }
 
     private fun initDistractionFreeMode(savedInstanceState: Bundle?) {
@@ -801,6 +810,7 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == RequestCode.SEARCH.value) {
             Log.v(LOG_TAG, "-> onActivityResult -> " + RequestCode.SEARCH)
@@ -890,6 +900,10 @@ class FolioActivity : AppCompatActivity(), FolioActivityCallback, MediaControlle
 
                 if (state == DirectionalViewpager.SCROLL_STATE_IDLE) {
                     val position = mFolioPageViewPager!!.currentItem
+                    ////////////////////////////////
+                    Log.e("Check total",mFolioPageViewPager!!.adapter.count.toString())
+                    page_status.text = "${position+1} of ${mFolioPageViewPager!!.adapter.count}"
+                    ////////////////////////////////
                     Log.v(
                         LOG_TAG, "-> onPageScrollStateChanged -> DirectionalViewpager -> " +
                                 "position = " + position
